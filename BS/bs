@@ -81,7 +81,7 @@ class BSParser
       case @keyword.downcase
       when "start"
         brieflist.start = @value        
-      when "blankimage"
+      when "blankimage", "defaultimage"
         brieflist.blankImage = @value        
       when "scene"
         currentScene = Scene.new(@value, brieflist)
