@@ -1,0 +1,400 @@
+#!/usr/bin/env ruby
+#
+#  Created by Jose Vazquez on 2009-09-27.
+#  Copyright (c) 2009. All rights reserved.
+
+class BSParser
+  def initialize
+    @line = nil
+    @currentLineno = 0
+    @tempValue = ""
+    @value = ""
+    @tempKeyword = nil
+    @keyword = nil
+    @tempLineno = nil
+    @lineno = nil
+    @eof = false
+  end
+
+  # returns: eof
+  def updateLine
+    if @line.nil?
+      begin
+        @line = gets
+        @currentLineno += 1
+        if @line.nil?
+          return @eof=true
+        end
+        @line = @line.sub(/#.*/,"").strip # strip out comments
+      end while @line =~ /^$/              # ignore blank lines
+    end
+    return @eof=false
+  end
+
+  def getKeyword
+    begin
+      found = false
+      begin
+        updateLine
+        if @eof
+          @keyword = @tempKeyword
+          @lineno = @tempLineno
+          @value = @tempValue.strip          
+          return @eof
+        end
+        if @line =~ /^(\S+):\s*(.*)/
+          #puts "Keyword:" + $1 + " |  rest:" + $2
+          @keyword = @tempKeyword
+          @lineno = @tempLineno
+          @tempKeyword = $1
+          @tempLineno = @currentLineno
+          @value = @tempValue.strip
+          @tempValue = ""
+          @line = $2
+          found = true
+        elsif @line =~ /^(\S+)\s*(.*)/
+          @tempValue += $1 + " "
+          @line = $2
+          #puts "value:" + @tempValue
+        else
+          #puts "Confused:>>" + @line + "<<"
+          @line = nil
+        end
+      end while !found
+    end while @keyword.nil?
+    return @eof
+  end
+
+  def perror(msg="")
+    STDERR.puts "#{$FILENAME}:#{@lineno}: " + msg + " <#{@keyword}:#{@value}>"
+    @perror_count += 1
+  end
+
+  def parse
+    brieflist = BriefList.new
+    currentScene = nil
+    currentActor = nil
+    @perror_count = 0
+    begin
+      eof = getKeyword
+      #puts "Keyword:" + @keyword + " Value:>>" + @value + "<<"
+      case @keyword.downcase
+      when "start"
+        brieflist.start = @value        
+      when "blankimage"
+        brieflist.blankImage = @value        
+      when "scene"
+        currentScene = Scene.new(@value, brieflist)
+        brieflist.addScene(currentScene)
+        currentActor = nil
+      when "image"
+        if !currentActor.nil?
+          currentActor.image = @value
+        elsif !currentScene.nil?
+          currentScene.image = @value
+        else
+          perror "No Scenes defined before issuing"
+        end
+      when "actor"
+        if !currentScene.nil?
+          currentActor = Actor.new(@value, brieflist, currentScene)
+          currentScene.addActor(currentActor)
+        else
+          perror "No Scenes defined before issuing"
+        end
+      when "x"
+        if !(@value =~ /^\-?\d+$/)
+          perror "\"#{@value}\" is not a valid number"          
+        elsif !currentActor.nil?          
+          currentActor.x = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "y"
+        if !(@value =~ /^\-?\d+$/)
+          perror "\"#{@value}\" is not a valid number"          
+        elsif !currentActor.nil?          
+          currentActor.y = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "w", "width"
+        if !(@value =~ /^\-?\d+$/)
+          perror "\"#{@value}\" is not a valid number"          
+        elsif !currentActor.nil?          
+          currentActor.width = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "h", "height"
+        if !(@value =~ /^\-?\d+$/)
+          perror "\"#{@value}\" is not a valid number"          
+        elsif !currentActor.nil?          
+          currentActor.height = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "xy","offset","coord"
+        if !(@value =~ /^(\-?\d+)\s*,\s*(\-?\d+)$/)
+          perror "\"#{@value}\" is not a valid number pair x,y"
+        elsif !currentActor.nil?          
+          currentActor.x = $1
+          currentActor.y = $2
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "wh", "size"
+        if !(@value =~ /^(\-?\d+)\s*,\s*(\-?\d+)$/)
+          perror "\"#{@value}\" is not a valid number pair x,y"
+        elsif !currentActor.nil?          
+          currentActor.width = $1
+          currentActor.height = $2
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "xywh", "bounds"
+        if !(@value =~ /^(\-?\d+)\s*,\s*(\-?\d+)\s*,\s*(\-?\d+)\s*,\s*(\-?\d+)$/)
+          perror "\"#{@value}\" is not a valid bounds quartet x,y,w,h"
+        elsif !currentActor.nil?          
+          currentActor.x = $1
+          currentActor.y = $2
+          currentActor.width = $3
+          currentActor.height = $4
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "action"
+        if !currentActor.nil?          
+          currentActor.action = @value
+        else
+          perror "No Actor defined before issuing"
+        end        
+      else
+        perror "Illegal keyword"
+        #STDERR.puts "#{@lineno}: Illegal keyword " + @keyword
+      end
+    end while !eof
+    STDERR.puts "#{@perror_count} errors found." if @perror_count > 0
+    brieflist.dumpBriefList
+  end
+end
+
+class PListNode
+  def dumpKeyValuePair(indent, key, value, out=STDOUT, type="string")
+    iputs(indent, "<key>#{key}</key>", out)
+    iputs(indent, "<#{type}>#{value}</#{type}>", out)    
+  end
+
+  def dumpBriefList(indent=0, out=STDOUT)
+  end
+  
+  def iputs(indent, msg, out=STDOUT)
+    indent.times {print "\t"}
+    out.puts msg
+  end
+  
+end
+
+class BriefList < PListNode
+  attr_accessor :start
+  attr_accessor :blankImage
+  
+  def initialize
+    @scenes = []        # init as an empty array
+    @sceneIndecies = {} # init as an empty hash
+    @blankImage = ""
+    @start = 0
+  end
+  
+  def addScene(scene=nil)
+    return if scene.nil?
+    return if scene.class != Scene
+    @scenes.push(scene)
+    @sceneIndecies[scene.name] = @scenes.length-1
+  end
+  
+  def has_sceneName?(name)
+    @sceneIndecies.has_key?(name)
+  end
+  
+  def indexForSceneName(name)
+    @sceneIndecies[name]
+  end
+  
+  def dumpScenes(indent=0, out=STDOUT)
+    return if @scenes.length==0
+    iputs(indent, "<key>scenes</key>", out)
+    iputs(indent, "<array>", out)
+    @scenes.each {|scene| scene.dumpBriefList(indent+1, out)}    
+    iputs(indent, "</array>", out)
+  end
+
+  def dumpBriefList(indent=0, out=STDOUT)
+    iputs(indent, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>", out)
+    iputs(indent, "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">", out)
+    iputs(indent, "<plist version=\"1.0\">", out)
+    iputs(indent, "<dict>", out)
+    dumpKeyValuePair(indent+1, "start_scene", indexForSceneName(@start), out, "integer")
+    dumpScenes(indent+1, out)
+    iputs(indent, "</dict>", out)
+    iputs(indent, "</plist>", out)
+  end
+end
+
+class Scene < PListNode
+  attr_reader   :name
+  attr_accessor :image
+
+  def initialize(name="", brieflist=nil)
+    @actors = []
+    @name = name
+    @brieflist = brieflist
+  end
+  
+  def addActor(actor=nil)
+    return if actor.nil?
+    return if actor.class != Actor
+    @actors.push(actor)
+  end
+  
+  def dumpActors(indent=0, out=STDOUT)
+    return if @actors.length==0
+    iputs(indent, "<key>actors</key>", out)
+    iputs(indent, "<array>", out)
+    @actors.each {|actor| actor.dumpBriefList(indent+1, out)}    
+    iputs(indent, "</array>", out)
+  end
+
+
+  def dumpBriefList(indent=0, out=STDOUT)
+    iputs(indent, "<dict>", out)
+    dumpKeyValuePair(indent+1,"img",image, out)
+    dumpKeyValuePair(indent+1,"name",name, out)
+    dumpActors(indent+1, out)
+    iputs(indent, "</dict>", out)
+  end
+  
+end
+
+class Actor < PListNode
+  attr_reader   :name
+  attr_accessor :image
+  attr_accessor :x
+  attr_accessor :y
+  attr_accessor :width
+  attr_accessor :height
+  attr_accessor :action
+
+  def initialize(name="", brieflist=nil, scene=nil)
+    @name = name
+    @image = nil
+    @x = nil
+    @y = nil
+    @width = nil
+    @height = nil
+    @action = nil
+    @brieflist = brieflist
+    @scene = scene
+  end
+
+  def substituteLinks(line="")
+    newLine =""
+    while line!=""
+      if line =~ /^\s*([^\(]+)\s*\(\s*([^\)]+)\s*\)(.*)/
+        # example, if line were "firstCommand(arg1, arg2) secondCommand(arg3) ..."
+        # $1 = "firstCommand"
+        # $2 = "arg1, arg2"
+        # $3 = "secondCommand(arg3) ..."
+        
+        line = $3 # gets the rest of the line
+        sceneName = $2.strip
+        if @brieflist.has_sceneName?(sceneName)
+          newLine += $1.strip + "(#{@brieflist.indexForSceneName(sceneName)}) "
+        else
+          STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
+        end
+      else
+        STDERR.puts "nothing found in #{action}"
+        line = ""
+        newLine += line
+      end
+    end
+    newLine = newLine.strip
+    return newLine
+  end
+
+  def substituteImage
+    return @brieflist.blankImage if @image==""
+    return @brieflist.blankImage if @image.nil?
+    return @image
+  end
+
+  def dumpBriefList(indent=0, out=STDOUT)
+    iputs(indent, "<dict>", out)
+    dumpKeyValuePair(indent+1, "img",    substituteImage,  out)
+    dumpKeyValuePair(indent+1, "x",      @x,      out, "integer")
+    dumpKeyValuePair(indent+1, "y",      @y,      out, "integer")
+    dumpKeyValuePair(indent+1, "width",  @width,  out, "integer")
+    dumpKeyValuePair(indent+1, "height", @height, out, "integer")
+    dumpKeyValuePair(indent+1, "name",   @name,   out)
+    dumpKeyValuePair(indent+1, "action", substituteLinks(@action), out)
+    iputs(indent, "</dict>", out)
+  end
+end
+
+bs = BSParser.new
+bs.parse
+
+
+=begin
+bl = BriefList.new
+bl.start = "Courses"
+
+sceneUsers = Scene.new("Users")
+sceneUsers.image = "TRS0.png"
+
+actor = Actor.new("MarlonBrando")
+actor.image = "brando.png"
+actor.x = 20
+actor.y = 30
+actor.width = 40
+actor.height = 50
+actor.action = "goto(Courses)"
+sceneUsers.addActor(actor)
+
+actor = Actor.new("RicardoMontalban")
+actor.image = "montalban.png"
+actor.x = 60
+actor.y = 70
+actor.width = 80
+actor.height = 90
+actor.action = "goto(Courses)"
+sceneUsers.addActor(actor)
+
+
+sceneCourses = Scene.new("Courses")
+sceneCourses.image = "TRS1.png"
+
+actor = Actor.new("RichardDreyfuss")
+actor.image = "dreyfuss.png"
+actor.x = 100
+actor.y = 110
+actor.width = 120
+actor.height = 130
+actor.action = "goto(Users)"
+sceneCourses.addActor(actor)
+
+actor = Actor.new("HarrisonFord")
+actor.image = "ford.png"
+actor.x = 140
+actor.y = 150
+actor.width = 160
+actor.height = 170
+actor.action = "goto(Users)"
+sceneCourses.addActor(actor)
+
+bl.addScene(sceneUsers)
+bl.addScene(sceneCourses)
+
+bl.dumpBriefList
+=end

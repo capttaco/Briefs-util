@@ -1,0 +1,37 @@
+# this is a comment
+start: Users
+defaultImage:TRSblank40x30.png
+
+scene:Users image:TRS0.png # this will be the starting scene
+    actor: Anywhere image:blank.png x:0 y:0 width:320 height:480
+        action: # this is a load of comment crap
+				goto (Courses) #more comment
+scene:Courses image:TRS1.png
+    actor:Main Body image:TRSblank40x30.png xy:0,0 w:320 h:480 action:goto(Lessons)
+    actor:Users xy:250,0 wh:70,65 action:goto(Users)
+
+scene:Lessons image:TRS2.png
+    actor:Main Body xywh:0,0,320,480 action:goto(Go scene)
+    actor:Courses xy:250,0 wh:70,65 action:goto(Courses)
+
+scene:Go scene image:TRS3.png
+    actor:Lessons     xy:0,0   wh:320,480 action:goto(Lessons)
+    actor:Show Chords xy:200,0 wh:120,350 action:goto(ShowStaff)
+    actor:PlayScene   xy:0,350 wh:80,130  action:goto(PlayScene)
+
+scene:ShowStaff image:TRS4.png
+    actor:ShowLetter  xy:0,0   wh:320,480 action:goto(ShowLetter)
+
+scene:ShowLetter image:TRS5.png
+    actor:GoScene     xy:0,0   wh:320,480 action:goto(Go scene)
+
+scene:PlayScene image:TRS6.png
+    actor:GoScene	  xy:0,0   wh:320,480 action:goto(Go scene)
+
+# Should blank images be handled by Briefs or should bs create them?
+# Should scene and actor names allow blanks? 
+# Should scene names be force to have no spaces?
+# Should strings have quotes to delimit them?
+# Test with and without a space between the keyword and the value
+# Test with values on multiple lines
+# Test with value on separate lines from keyword
