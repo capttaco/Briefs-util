@@ -218,7 +218,11 @@ class BriefList < PListNode
   end
   
   def indexForSceneName(name)
-    @sceneIndecies[name]
+    if @sceneIndecies.has_key?(name)
+      return @sceneIndecies[name]
+    else
+      return 0
+    end
   end
   
   def dumpScenes(indent=0, out=STDOUT)
