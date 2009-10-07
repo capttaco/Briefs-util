@@ -152,7 +152,7 @@ class BSParser
         else
           perror "No Actor defined before issuing"
         end
-      when "xywh", "bounds"
+      when "xywh", "bounds", "frame"
         if !(@value =~ /^(\-?\d+)\s*,\s*(\-?\d+)\s*,\s*(\-?\d+)\s*,\s*(\-?\d+)$/)
           perror "\"#{@value}\" is not a valid bounds quartet x,y,w,h"
         elsif !currentActor.nil?          
