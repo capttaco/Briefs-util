@@ -102,7 +102,7 @@ class BSParser
         else
           perror "No Scenes defined before issuing"
         end
-      when "x"
+      when "x", "left"
         if !(@value =~ /^\-?\d+$/)
           perror "\"#{@value}\" is not a valid number"          
         elsif !currentActor.nil?          
@@ -110,7 +110,7 @@ class BSParser
         else
           perror "No Actor defined before issuing"
         end
-      when "y"
+      when "y", "top"
         if !(@value =~ /^\-?\d+$/)
           perror "\"#{@value}\" is not a valid number"          
         elsif !currentActor.nil?          
@@ -134,7 +134,7 @@ class BSParser
         else
           perror "No Actor defined before issuing"
         end
-      when "xy","offset","coord"
+      when "xy","offset","coord", "position", "pos"
         if !(@value =~ /^(\-?\d+)\s*,\s*(\-?\d+)$/)
           perror "\"#{@value}\" is not a valid number pair x,y"
         elsif !currentActor.nil?          
