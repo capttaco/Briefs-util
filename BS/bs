@@ -154,7 +154,7 @@ class App
     def process_command
       # TO DO - do whatever this app does  
       bs = BSParser.new
-      bs.parse(2, @output_stream)
+      bs.parse(0, @output_stream)
       
       #process_standard_input # [Optional]
     end
@@ -358,7 +358,7 @@ class PListNode
   end
   
   def iputs(indent, msg, out=STDOUT)
-    indent.times {print "\t"}
+    indent.times {out.print "\t"}
     out.puts msg
   end
   
