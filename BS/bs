@@ -63,7 +63,7 @@ class App
     @options = OpenStruct.new
     @options.verbose = false
     @options.quiet = false
-    @options.outfile = ""
+    @options.outfile = nil
     # TO DO - add additional defaults
   end
 
