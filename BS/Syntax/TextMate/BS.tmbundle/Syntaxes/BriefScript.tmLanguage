@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>BriefScript Syntax: version 0.1</string>
+	<key>fileTypes</key>
+	<array>
+		<string>bs</string>
+		<string>briefscript</string>
+	</array>
+	<key>foldingStartMarker</key>
+	<string>/\*\*|\{\s*$</string>
+	<key>foldingStopMarker</key>
+	<string>\*\*/|^\s*\}</string>
+	<key>name</key>
+	<string>BriefScript</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>\b(scene|actor|image|x|y|w|h|width|height|xy|wh|xywh|start|action|bounds|blankImage|pos|position|defaultImage|top|left|size):</string>
+			<key>name</key>
+			<string>keyword.bs</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>#.*$</string>
+			<key>name</key>
+			<string>comment.bs</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>"</string>
+			<key>end</key>
+			<string>"</string>
+			<key>name</key>
+			<string>string.quoted.double.untitled</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>\\.</string>
+					<key>name</key>
+					<string>constant.character.escape.untitled</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.briefscript</string>
+	<key>uuid</key>
+	<string>5A8C1C75-3E2C-44ED-A902-3837C02D16E1</string>
+</dict>
+</plist>
