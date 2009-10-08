@@ -17,7 +17,7 @@
 #     bs --verbose foo.bs
 #
 # == Usage 
-#   bs [-qV] source_file [ -o | --output | > your_output.txt ]  
+#   bs [-qV] source_file [ -o | --output | > your_output.brieflist ]  
 #
 #   For help use: bs -h
 #
@@ -33,7 +33,7 @@
 #   http://giveabrief.com/
 #
 # == Copyright
-#   Created by Jose Vazquez & Rob Rhyne.
+#   Created by Rob Rhyne & Jose Vazquez.
 #   Copyright (c) 2009 Digital Arch Design, Little Mustard LLC. 
 #   See LICENSE file for details.
 
