@@ -504,7 +504,7 @@ class Actor < PListNode
 
   def dumpBriefList(indent=0, out=STDOUT)
     iputs(indent, "<dict>", out)
-    dumpKeyValuePair(indent+1, "img",    substituteImage,  out)
+    dumpKeyValuePair(indent+1, "img",    substituteImage,  out) if !@image.nil?
     dumpKeyValuePair(indent+1, "x",      @x,      out, "integer")
     dumpKeyValuePair(indent+1, "y",      @y,      out, "integer")
     dumpKeyValuePair(indent+1, "width",  @width,  out, "integer")
