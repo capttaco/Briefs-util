@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Completions</string>
+	<key>scope</key>
+	<string>source.briefscript</string>
+	<key>settings</key>
+	<dict>
+		<key>completions</key>
+		<array>
+			<string>action:</string>
+			<string>actor:</string>
+			<string>bounds:</string>
+			<string>height:</string>
+			<string>h:</string>
+			<string>image:</string>
+			<string>left:</string>
+			<string>position:</string>
+			<string>pos:</string>
+			<string>scene:</string>
+			<string>size:</string>
+			<string>start:</string>
+			<string>top:</string>
+			<string>width:</string>
+			<string>w:</string>
+			<string>wh:</string>
+			<string>x:</string>
+			<string>xy:</string>
+			<string>xywh:</string>
+			<string>y:</string>
+		</array>
+	</dict>
+	<key>uuid</key>
+	<string>681009BF-1AD9-4232-BF47-1BD3CA0057B7</string>
+</dict>
+</plist>
