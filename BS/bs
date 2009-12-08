@@ -479,13 +479,26 @@ class Actor < PListNode
         # $1 = "firstCommand"
         # $2 = "arg1, arg2"
         # $3 = "secondCommand(arg3) ..."
-        
+        command = $1.downcase.strip
+        arguments = $2.strip
         line = $3 # gets the rest of the line
-        sceneName = $2.strip.downcase
-        if @brieflist.has_sceneName?(sceneName)
-          newLine += $1.strip + "(#{@brieflist.indexForSceneName(sceneName)}) "
-        else
-          STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
+        
+        case command        
+          when "goto"
+            if arguments =~ /^([^\,]+)(\,.*)$/
+              sceneName = $1.strip.downcase
+              otherArguments = $2
+            else
+              sceneName = arguments.downcase
+              otherArguments = "";
+            end
+            if @brieflist.has_sceneName?(sceneName)
+              newLine += command + "(#{@brieflist.indexForSceneName(sceneName)}#{otherArguments}) "
+            else
+              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
+            end
+          else
+            STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: \"#{command}\" is not a valid command"
         end
       else
         #STDERR.puts "nothing found in #{action}" # This is not necessarily an error
