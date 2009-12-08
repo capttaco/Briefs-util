@@ -253,7 +253,7 @@ class BSParser
       when "blankimage", "defaultimage"
         brieflist.blankImage = @value        
       when "scene"
-        currentScene = Scene.new(@value, brieflist)
+        currentScene = Scene.new(@value.downcase, brieflist)
         brieflist.addScene(currentScene)
         currentActor = nil
       when "image"
@@ -471,6 +471,7 @@ class Actor < PListNode
   end
 
   def substituteLinks(line="")
+    return "" if line.nil?
     newLine =""
     while line!=""
       if line =~ /^\s*([^\(]+)\s*\(\s*([^\)]+)\s*\)(.*)/
@@ -480,16 +481,16 @@ class Actor < PListNode
         # $3 = "secondCommand(arg3) ..."
         
         line = $3 # gets the rest of the line
-        sceneName = $2.strip
+        sceneName = $2.strip.downcase
         if @brieflist.has_sceneName?(sceneName)
           newLine += $1.strip + "(#{@brieflist.indexForSceneName(sceneName)}) "
         else
           STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
         end
       else
-        STDERR.puts "nothing found in #{action}"
-        line = ""
+        #STDERR.puts "nothing found in #{action}" # This is not necessarily an error
         newLine += line
+        line = ""
       end
     end
     newLine = newLine.strip
