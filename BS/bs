@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby 
 
+=begin
 # == Synopsis 
 #   This is a compiler for .bs script files. BS is a concise
 #   format for describing .brieflist files. This compiler takes
@@ -42,7 +43,7 @@
 # TO DO - replace all YourName with your actual name
 # TO DO - update Synopsis, Examples, etc
 # TO DO - change license if necessary
-
+=end
 
 require 'optparse' 
 require 'rdoc/usage'
@@ -266,7 +267,7 @@ class BSParser
         end
       when "actor"
         if !currentScene.nil?
-          currentActor = Actor.new(@value, brieflist, currentScene)
+          currentActor = Actor.new(@value.downcase, brieflist, currentScene)
           currentScene.addActor(currentActor)
         else
           perror "No Scenes defined before issuing"
@@ -420,6 +421,7 @@ class Scene < PListNode
 
   def initialize(name="", brieflist=nil)
     @actors = []
+    @actorIndecies = {}
     @name = name
     @brieflist = brieflist
   end
@@ -428,6 +430,19 @@ class Scene < PListNode
     return if actor.nil?
     return if actor.class != Actor
     @actors.push(actor)
+    @actorIndecies[actor.name] = @actors.length-1
+  end
+
+  def has_actorName?(name)
+    @actorIndecies.has_key?(name)
+  end
+  
+  def indexForActorName(name)
+    if @actorIndecies.has_key?(name)
+      return @actorIndecies[name]
+    else
+      return 0
+    end
   end
   
   def dumpActors(indent=0, out=STDOUT)
@@ -485,18 +500,41 @@ class Actor < PListNode
         
         case command        
           when "goto"
-            if arguments =~ /^([^\,]+)(\,.*)$/
-              sceneName = $1.strip.downcase
-              otherArguments = $2
+            argumentList = arguments.split(/\s*,\s*/) # create a list of comma separated tokens.
+            argCount = argumentList.count
+            if argCount > 2
+              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: Too many arguments (#{argCount}) for goto action command."
             else
-              sceneName = arguments.downcase
-              otherArguments = "";
+              sceneName = argumentList[0].downcase
+              if !(@brieflist.has_sceneName?(sceneName))
+                STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
+              else
+                sceneIndex = @brieflist.indexForSceneName(sceneName)
+                if argCount == 1
+                  newLine += command + "(#{sceneIndex}) "
+                else
+                  newLine += command + "(#{sceneIndex},#{argumentList[1]}) "
+                end
+              end
             end
-            if @brieflist.has_sceneName?(sceneName)
-              newLine += command + "(#{@brieflist.indexForSceneName(sceneName)}#{otherArguments}) "
+          #end goto command
+            
+          when "toggle"
+            argumentList = arguments.split(/\s*,\s*/) # create a list of comma separated tokens.
+            argCount = argumentList.count
+            if argCount > 1
+              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: Too many arguments (#{argCount}) for toggle action command."
             else
-              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
-            end
+              actorName = argumentList[0].downcase
+              if !(@scene.has_actorName?(actorName))
+                STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No actor named \"#{actorName}\" was found"
+              else
+                actorIndex = @scene.indexForActorName(actorName)
+                newLine += command + "(#{actorIndex}) "
+              end
+            end 
+          #end toggle command
+                            
           else
             STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: \"#{command}\" is not a valid command"
         end
