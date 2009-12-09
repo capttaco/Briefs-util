@@ -50,6 +50,25 @@ require 'rdoc/usage'
 require 'ostruct'
 require 'date'
 
+# Action Language Definition #################################################
+ACTION_ARG_PASS            = 0
+ACTION_ARG_SCENE           = 1
+ACTION_ARG_ACTOR           = 2
+ACTION_ARG_ANIMATION_STYLE = 3
+ACTION_ARG_NUMBER          = 4
+ACTION_ARG_SOUND_PATH      = 5
+
+ACTION_LANG = {
+  "goto"   => [[ACTION_ARG_SCENE],
+               [ACTION_ARG_SCENE, ACTION_ARG_ANIMATION_STYLE]],
+  "toggle" => [[ACTION_ARG_ACTOR]],
+  "move"   => [[ACTION_ARG_ACTOR, ACTION_ARG_NUMBER, ACTION_ARG_NUMBER]],
+  "resize" => [[ACTION_ARG_ACTOR, ACTION_ARG_NUMBER, ACTION_ARG_NUMBER]],
+  "play"   => [[ACTION_ARG_SOUND_PATH]],
+  "show"   => [[ACTION_ARG_ACTOR, ACTION_ARG_ANIMATION_STYLE]],
+  "hide"   => [[ACTION_ARG_ACTOR, ACTION_ARG_ANIMATION_STYLE]],
+}
+# End Action Language Definition #############################################
 
 class App
   VERSION = '0.1'
@@ -171,8 +190,6 @@ class App
     end
 end
 
-
-# TO DO - Add your Modules, Classes, etc
 class BSParser
   def initialize
     @line = nil
@@ -453,7 +470,6 @@ class Scene < PListNode
     iputs(indent, "</array>", out)
   end
 
-
   def dumpBriefList(indent=0, out=STDOUT)
     iputs(indent, "<dict>", out)
     dumpKeyValuePair(indent+1,"img",image, out)
@@ -485,9 +501,19 @@ class Actor < PListNode
     @scene = scene
   end
 
-  def substituteLinks(line="")
+  def perror(msg="")
+    STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: " + msg
+  end
+
+  def pverbose(msg="")
+    STDERR.puts "Scene:#{@scene.name} Actor:#{@name} " + msg if APP.options.verbose
+  end
+
+
+  def parseActions(line="")
     return "" if line.nil?
     newLine =""
+    pverbose "parsing \"#{line}\" ----------------"
     while line!=""
       if line =~ /^\s*([^\(]+)\s*\(\s*([^\)]+)\s*\)(.*)/
         # example, if line were "firstCommand(arg1, arg2) secondCommand(arg3) ..."
@@ -495,51 +521,58 @@ class Actor < PListNode
         # $2 = "arg1, arg2"
         # $3 = "secondCommand(arg3) ..."
         command = $1.downcase.strip
-        arguments = $2.strip
         line = $3 # gets the rest of the line
+        arguments = $2.strip.split(/\s*,\s*/) # create a list of comma separated tokens.
+        argCount = arguments.count
+        pverbose "command: #{command}"
         
-        case command        
-          when "goto"
-            argumentList = arguments.split(/\s*,\s*/) # create a list of comma separated tokens.
-            argCount = argumentList.count
-            if argCount > 2
-              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: Too many arguments (#{argCount}) for goto action command."
-            else
-              sceneName = argumentList[0].downcase
-              if !(@brieflist.has_sceneName?(sceneName))
-                STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No scene named \"#{sceneName}\" was found"
-              else
-                sceneIndex = @brieflist.indexForSceneName(sceneName)
-                if argCount == 1
-                  newLine += command + "(#{sceneIndex}) "
-                else
-                  newLine += command + "(#{sceneIndex},#{argumentList[1]}) "
-                end
-              end
-            end
-          #end goto command
-            
-          when "toggle"
-            argumentList = arguments.split(/\s*,\s*/) # create a list of comma separated tokens.
-            argCount = argumentList.count
-            if argCount > 1
-              STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: Too many arguments (#{argCount}) for toggle action command."
-            else
-              actorName = argumentList[0].downcase
-              if !(@scene.has_actorName?(actorName))
-                STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: No actor named \"#{actorName}\" was found"
-              else
-                actorIndex = @scene.indexForActorName(actorName)
-                newLine += command + "(#{actorIndex}) "
-              end
-            end 
-          #end toggle command
-                            
-          else
-            STDERR.puts "Scene:#{@scene.name} Actor:#{@name} Error: \"#{command}\" is not a valid command"
+        if !(ACTION_LANG.has_key?(command))
+          perror "command \"#{command}\" has invalid syntax"
+          continue
         end
+        template = []
+        foundTemplate = false
+        ACTION_LANG[command].each do |argTemplate|
+          template = argTemplate
+          if argTemplate.count == argCount
+            foundTemplate = true
+            break
+          end
+        end
+        perror "Illegal number of arguments (#{argCount}) for command \"#{command}\"" if !foundTemplate
+
+        for i in 0..(argCount-1)
+          case template[i]
+          when ACTION_ARG_PASS
+            pverbose "arg#{i}: ACTION_ARG_PASS"
+          when ACTION_ARG_SCENE
+            pverbose "arg#{i}: ACTION_ARG_SCENE"
+            sceneName = arguments[i].downcase
+            if !(@brieflist.has_sceneName?(sceneName))
+              perror "No scene named \"#{sceneName}\" was found"
+            else
+              arguments[i] = @brieflist.indexForSceneName(sceneName)
+            end
+          when ACTION_ARG_ACTOR
+            pverbose "arg#{i}: ACTION_ARG_ACTOR"
+            actorName = arguments[i].downcase
+            if !(@scene.has_actorName?(actorName))
+              perror "No actor named \"#{actorName}\" was found"
+            else
+              arguments[i] = @scene.indexForActorName(actorName)
+            end
+          when ACTION_ARG_ANIMATION_STYLE
+            pverbose "arg#{i}: ACTION_ARG_ANIMATION_STYLE"
+          when ACTION_ARG_NUMBER
+            pverbose "arg#{i}: ACTION_ARG_NUMBER"
+          else
+            perror "arg#{i} Unknown action arg type"
+          end
+        end
+        # append the processed command and argument to the newLine
+        newLine += command + "(" + arguments.join(", ") + ") "
       else
-        #STDERR.puts "nothing found in #{action}" # This is not necessarily an error
+        perror "nothing found in #{action}" # This is not necessarily an error
         newLine += line
         line = ""
       end
@@ -562,7 +595,7 @@ class Actor < PListNode
     dumpKeyValuePair(indent+1, "width",  @width,  out, "integer")
     dumpKeyValuePair(indent+1, "height", @height, out, "integer")
     dumpKeyValuePair(indent+1, "name",   @name,   out)
-    dumpKeyValuePair(indent+1, "action", substituteLinks(@action), out)
+    dumpKeyValuePair(indent+1, "action", parseActions(@action), out)
     iputs(indent, "</dict>", out)
   end
 end
@@ -570,5 +603,5 @@ end
 
 
 # Create and run the application
-app = App.new(ARGV, STDIN)
-app.run
+APP = App.new(ARGV, STDIN)
+APP.run
