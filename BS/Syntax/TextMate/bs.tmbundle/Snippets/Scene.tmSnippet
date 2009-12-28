@@ -4,14 +4,14 @@
 <dict>
 	<key>content</key>
 	<string>scene:${1:New Scene}
-image:${2:newscene.png}
-	actor:${3:Actor Name}	position:${4:left},${5:top}	size:${6:width},${7:height}	action:${8:goto(Another Scene)}</string>
+image:${2:background.png}
+	</string>
 	<key>name</key>
 	<string>Scene</string>
 	<key>scope</key>
 	<string>source.briefscript</string>
 	<key>tabTrigger</key>
-	<string>scene</string>
+	<string>sc</string>
 	<key>uuid</key>
 	<string>E9810261-A865-4C89-9E4C-AD4B75915F0C</string>
 </dict>

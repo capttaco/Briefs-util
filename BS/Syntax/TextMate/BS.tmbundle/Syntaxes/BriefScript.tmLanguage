@@ -3,25 +3,45 @@
 <plist version="1.0">
 <dict>
 	<key>comment</key>
-	<string>BriefScript Syntax: version 0.1</string>
+	<string>BriefScript Syntax: version 0.2</string>
 	<key>fileTypes</key>
 	<array>
 		<string>bs</string>
 		<string>briefscript</string>
 	</array>
 	<key>foldingStartMarker</key>
-	<string>/\*\*|\{\s*$</string>
+	<string>scene:</string>
 	<key>foldingStopMarker</key>
-	<string>\*\*/|^\s*\}</string>
+	<string>^\s*$</string>
+	<key>keyEquivalent</key>
+	<string>^~B</string>
 	<key>name</key>
 	<string>BriefScript</string>
 	<key>patterns</key>
 	<array>
 		<dict>
 			<key>match</key>
-			<string>\b(scene|actor|image|x|y|w|h|width|height|xy|wh|xywh|start|action|bounds|blankImage|pos|position|defaultImage|top|left|size):</string>
+			<string>\b(action|actor|blankImage|bounds|defaultImage|height|h|image|left|position|pos|scene|size|start|top|width|w|wh|x|xy|xywh|y):</string>
 			<key>name</key>
 			<string>keyword.bs</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\b[0-9]+\b</string>
+			<key>name</key>
+			<string>constant.numeric.bs</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\b(goto|toggle|resize|move|hide|show)</string>
+			<key>name</key>
+			<string>support.function.bs</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\b(coverUp|coverDown|coverLeft|coverRight|curlUp|curlDown|flipLeft|flipRight|pushLeft|pushRight|pushUp|pushDown|revealDown|revealUp|revealLeft|revealRight|zoomIn|zoomOut)</string>
+			<key>name</key>
+			<string>support.constant.bs</string>
 		</dict>
 		<dict>
 			<key>match</key>
