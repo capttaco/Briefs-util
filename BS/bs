@@ -523,7 +523,7 @@ class Actor < PListNode
         command = $1.downcase.strip
         line = $3 # gets the rest of the line
         arguments = $2.strip.split(/\s*,\s*/) # create a list of comma separated tokens.
-        argCount = arguments.count
+        argCount = arguments.length
         pverbose "command: #{command}"
         
         if !(ACTION_LANG.has_key?(command))
@@ -534,7 +534,7 @@ class Actor < PListNode
         foundTemplate = false
         ACTION_LANG[command].each do |argTemplate|
           template = argTemplate
-          if argTemplate.count == argCount
+          if argTemplate.length == argCount
             foundTemplate = true
             break
           end
