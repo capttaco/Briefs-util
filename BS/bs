@@ -289,6 +289,18 @@ class BSParser
         else
           perror "No Scenes defined before issuing"
         end
+      when "touched"
+        if !currentActor.nil?          
+          currentActor.touched = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "visible"
+        if !currentActor.nil?          
+          currentActor.visible = @value
+        else
+          perror "No Actor defined before issuing"
+        end
       when "x", "left"
         if !(@value =~ /^\-?\d+$/)
           perror "\"#{@value}\" is not a valid number"          
@@ -369,7 +381,11 @@ end
 class PListNode
   def dumpKeyValuePair(indent, key, value, out=STDOUT, type="string")
     iputs(indent, "<key>#{key}</key>", out)
-    iputs(indent, "<#{type}>#{value}</#{type}>", out)    
+    if (type != "boolean")
+      iputs(indent, "<#{type}>#{value}</#{type}>", out)    
+    else
+      iputs(indent, "<#{value}/>", out)
+    end
   end
 
   def dumpBriefList(indent=0, out=STDOUT)
@@ -483,6 +499,8 @@ end
 class Actor < PListNode
   attr_reader   :name
   attr_accessor :image
+  attr_accessor :touched
+  attr_accessor :visible
   attr_accessor :x
   attr_accessor :y
   attr_accessor :width
@@ -492,6 +510,8 @@ class Actor < PListNode
   def initialize(name="", brieflist=nil, scene=nil)
     @name = name
     @image = nil
+    @touched = nil
+    @visible = true
     @x = nil
     @y = nil
     @width = nil
@@ -589,12 +609,14 @@ class Actor < PListNode
 
   def dumpBriefList(indent=0, out=STDOUT)
     iputs(indent, "<dict>", out)
-    dumpKeyValuePair(indent+1, "img",    substituteImage,  out) if !@image.nil?
-    dumpKeyValuePair(indent+1, "x",      @x,      out, "integer")
-    dumpKeyValuePair(indent+1, "y",      @y,      out, "integer")
-    dumpKeyValuePair(indent+1, "width",  @width,  out, "integer")
-    dumpKeyValuePair(indent+1, "height", @height, out, "integer")
-    dumpKeyValuePair(indent+1, "name",   @name,   out)
+    dumpKeyValuePair(indent+1, "img",     substituteImage,  out) if !@image.nil?
+    dumpKeyValuePair(indent+1, "touched", @touched, out) if !@touched.nil?
+    dumpKeyValuePair(indent+1, "x",       @x,       out, "integer")
+    dumpKeyValuePair(indent+1, "y",       @y,       out, "integer")
+    dumpKeyValuePair(indent+1, "width",   @width,   out, "integer")
+    dumpKeyValuePair(indent+1, "height",  @height,  out, "integer")
+    dumpKeyValuePair(indent+1, "visible", @visible, out, "boolean")
+    dumpKeyValuePair(indent+1, "name",    @name,    out)
     dumpKeyValuePair(indent+1, "action", parseActions(@action), out)
     iputs(indent, "</dict>", out)
   end
