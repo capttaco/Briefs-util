@@ -295,9 +295,21 @@ class BSParser
         else
           perror "No Actor defined before issuing"
         end
+      when "disabled"
+        if !currentActor.nil?          
+          currentActor.disabled = @value
+        else
+          perror "No Actor defined before issuing"
+        end
       when "visible"
         if !currentActor.nil?          
           currentActor.visible = @value
+        else
+          perror "No Actor defined before issuing"
+        end
+      when "scrollable"
+        if !currentActor.nil?          
+          currentActor.scrollable = @value
         else
           perror "No Actor defined before issuing"
         end
@@ -500,7 +512,9 @@ class Actor < PListNode
   attr_reader   :name
   attr_accessor :image
   attr_accessor :touched
+  attr_accessor :disabled
   attr_accessor :visible
+  attr_accessor :scrollable
   attr_accessor :x
   attr_accessor :y
   attr_accessor :width
@@ -512,6 +526,7 @@ class Actor < PListNode
     @image = nil
     @touched = nil
     @visible = true
+    @scrollable = false
     @x = nil
     @y = nil
     @width = nil
@@ -611,12 +626,14 @@ class Actor < PListNode
     iputs(indent, "<dict>", out)
     dumpKeyValuePair(indent+1, "img",     substituteImage,  out) if !@image.nil?
     dumpKeyValuePair(indent+1, "touched", @touched, out) if !@touched.nil?
-    dumpKeyValuePair(indent+1, "x",       @x,       out, "integer")
-    dumpKeyValuePair(indent+1, "y",       @y,       out, "integer")
-    dumpKeyValuePair(indent+1, "width",   @width,   out, "integer")
-    dumpKeyValuePair(indent+1, "height",  @height,  out, "integer")
-    dumpKeyValuePair(indent+1, "visible", @visible, out, "boolean")
-    dumpKeyValuePair(indent+1, "name",    @name,    out)
+    dumpKeyValuePair(indent+1, "disabled",@disabled,out) if !@disabled.nil?
+    dumpKeyValuePair(indent+1, "x",           @x,           out, "integer")
+    dumpKeyValuePair(indent+1, "y",           @y,           out, "integer")
+    dumpKeyValuePair(indent+1, "width",       @width,       out, "integer")
+    dumpKeyValuePair(indent+1, "height",      @height,      out, "integer")
+    dumpKeyValuePair(indent+1, "visible",     @visible,     out, "boolean")
+    dumpKeyValuePair(indent+1, "scrollable",  @scrollable,  out, "boolean")
+    dumpKeyValuePair(indent+1, "name",        @name,        out)
     dumpKeyValuePair(indent+1, "action", parseActions(@action), out)
     iputs(indent, "</dict>", out)
   end
