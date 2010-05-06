@@ -65,8 +65,8 @@ ACTION_LANG = {
   "move"   => [[ACTION_ARG_ACTOR, ACTION_ARG_NUMBER, ACTION_ARG_NUMBER]],
   "resize" => [[ACTION_ARG_ACTOR, ACTION_ARG_NUMBER, ACTION_ARG_NUMBER]],
   "play"   => [[ACTION_ARG_SOUND_PATH]],
-  "show"   => [[ACTION_ARG_ACTOR, ACTION_ARG_ANIMATION_STYLE]],
-  "hide"   => [[ACTION_ARG_ACTOR, ACTION_ARG_ANIMATION_STYLE]],
+  "show"   => [[ACTION_ARG_ACTOR]], # ACTION_ARG_ANIMATION_STYLE]],
+  "hide"   => [[ACTION_ARG_ACTOR]], #ACTION_ARG_ANIMATION_STYLE]],
 }
 # End Action Language Definition #############################################
 
